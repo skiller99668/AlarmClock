@@ -31,7 +31,7 @@ void alarmLoop()
     lcd.setCursor(colPos, 1);
 
     // check if user input matches answer if user presses enter
-    if (key == '#')
+    if (key == '#' && !SOLVED)
     {
         if (currentAns.toInt() == ANS)
         {
@@ -61,7 +61,7 @@ void alarmLoop()
         }
     }
     // backspace
-    else if (key == 'A')
+    else if (key == 'A' && !SOLVED)
     {
         currentAns.remove(currentAns.length() - 1);
         lcd.setCursor(colPos-1, 1);
@@ -75,11 +75,10 @@ void alarmLoop()
             noTone(BUZZER_PIN);
             alarmActive = false;
             Serial.println("Alarm turned off.");
-            // break;
         }
     }
     // general key press
-    else if (key && key != 'B' && key != 'C' && key != 'D')
+    else if (key && key != 'B' && key != 'C' && key != 'D' && !SOLVED)
     {
         lcd.setCursor(colPos, 1);
         lcd.print(key);

@@ -3,9 +3,6 @@
 #include <Keypad.h>
 
 #include "alarmSequence.h"
-// #include "equationMaker.h"
-
-//#define BUZZER_PIN 12
 
 const byte ROWS = 4;
 const byte COLS = 4;
@@ -34,13 +31,6 @@ void setup() {
     // make display:
     lcd.init();
     lcd.backlight();
-    
-    // equation();
-
-    // lcd.print(eq);
-
-    // lcd.setCursor(0,1);
-    // lcd.print("= ");
 }
 
 void loop() {
@@ -69,3 +59,4 @@ void loop() {
 // 2. get the set alarm system working on the lcd 
 // 3. if current time == alarm time, then alarmActive = true
 // then do the led stuff and then done!!!
+// add snooze button?
