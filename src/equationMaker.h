@@ -1,5 +1,5 @@
-#ifndef MATH_H
-#define MATH_H
+#ifndef EQUATION_MAKER_H
+#define EQUATION_MAKER_H
 
 #include <Arduino.h>
 

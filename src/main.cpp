@@ -2,7 +2,10 @@
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
 
-#include "equationMaker.h"
+#include "alarmSequence.h"
+// #include "equationMaker.h"
+
+//#define BUZZER_PIN 12
 
 const byte ROWS = 4;
 const byte COLS = 4;
@@ -21,74 +24,48 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-String currentAns;
+bool alarmActive = true; // should be false but testing rn
 
 void setup() {
     // put your setup code here, to run once:
     Serial.begin(9600);
+    pinMode(BUZZER_PIN, OUTPUT);
     
     // make display:
     lcd.init();
     lcd.backlight();
     
-    equation();
+    // equation();
 
-    lcd.print(eq);
+    // lcd.print(eq);
 
-    lcd.setCursor(0,1);
-    lcd.print("= ");
+    // lcd.setCursor(0,1);
+    // lcd.print("= ");
 }
 
 void loop() {
 
-// KEYPAD LOGIC
-// =========================
-    // key pad setup
-    char key = keypad.getKey();
-    int colPos = 2 + currentAns.length();
-    lcd.setCursor(colPos, 1);
+    // if time for alarm:
+    // if current time == alarm time
+    // alarmActive = true;
+//  =========================================================================
+// if alarm time is right now:
 
-    // check if user input matches answer if user presses enter
-    if (key == '#')
+// move equation stuff to here
+
+// loop through this:
+    if (alarmActive)
     {
-        if (currentAns.toInt() == ANS)
+        initAlarm();
+        while (alarmActive)
         {
-            lcd.clear();
-            lcd.print("Correct!");
-        }
-        else
-        {
-            lcd.clear();
-            lcd.print("Incorrect.");
-            lcd.setCursor(0,1);
-            lcd.print("Try Again.");
-            delay(2000);
-            lcd.clear();
-
-            currentAns = "";
-            lcd.print(eq);
-
-            lcd.setCursor(0,1);
-            lcd.print("= ");
+            alarmLoop();
         }
     }
-    // backspace
-    else if (key == 'A')
-    {
-        currentAns.remove(currentAns.length() - 1);
-        lcd.setCursor(colPos-1, 1);
-        lcd.print("                ");
-        lcd.setCursor(colPos-1, 1);
-    }
-    // general key press
-    else if (key)
-    {
-        lcd.setCursor(colPos, 1);
-        lcd.print(key);
-        currentAns = currentAns + key;
-
-    }
-// ==========================
-
-
 }
+
+// next steps:
+// 1. get the current time system working on the lcd
+// 2. get the set alarm system working on the lcd 
+// 3. if current time == alarm time, then alarmActive = true
+// then do the led stuff and then done!!!

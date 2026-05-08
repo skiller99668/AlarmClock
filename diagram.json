@@ -4,13 +4,27 @@
   "editor": "wokwi",
   "parts": [
     { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": -57.6, "left": -302.36, "attrs": {} },
-    { "type": "wokwi-lcd1602", "id": "lcd1", "top": -32, "left": -52, "attrs": { "pins": "i2c" } },
-    { "type": "wokwi-membrane-keypad", "id": "keypad1", "top": -386, "left": -253.6, "attrs": {} }
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd1",
+      "top": -41.6,
+      "left": -52,
+      "attrs": { "pins": "i2c" }
+    },
+    { "type": "wokwi-membrane-keypad", "id": "keypad1", "top": -386, "left": -253.6, "attrs": {} },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz1",
+      "top": -7.2,
+      "left": -411,
+      "attrs": { "volume": "0.1" }
+    }
   ],
+  
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
     [ "esp:RX", "$serialMonitor:TX", "", [] ],
-    [ "lcd1:VCC", "esp:3V3", "red", [ "h0" ] ],
+    [ "lcd1:VCC", "esp:VN", "red", [ "h0" ] ],
     [ "lcd1:GND", "esp:GND.2", "black", [ "h0" ] ],
     [ "lcd1:SCL", "esp:22", "green", [ "h0" ] ],
     [ "lcd1:SDA", "esp:21", "green", [ "h0" ] ],
@@ -21,7 +35,10 @@
     [ "keypad1:C1", "esp:16", "blue", [ "v0" ] ],
     [ "keypad1:C2", "esp:4", "blue", [ "v0" ] ],
     [ "keypad1:C3", "esp:0", "blue", [ "v0" ] ],
-    [ "keypad1:C4", "esp:2", "blue", [ "v0" ] ]
+    [ "keypad1:C4", "esp:2", "blue", [ "v0" ] ],
+    [ "bz1:2", "esp:12", "limegreen", [ "v0" ] ],
+    [ "bz1:1", "esp:GND.1", "black", [ "v0" ] ]
   ],
+
   "dependencies": {}
 }
