@@ -38,7 +38,7 @@ void alarmLoop()
             lcd.clear();
             lcd.print("Correct!");
             SOLVED = true;
-            Serial.println("Solved.");
+            // Serial.println("Solved.");
             delay(2000);
             lcd.clear();
 
@@ -74,7 +74,7 @@ void alarmLoop()
         {
             noTone(BUZZER_PIN);
             alarmActive = false;
-            Serial.println("Alarm turned off.");
+            // Serial.println("Alarm turned off.");
         }
     }
     // general key press

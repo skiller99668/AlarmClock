@@ -1,9 +1,14 @@
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
+#include <RTClib.h>
 
 #include "alarmSequence.h"
 
+// make rtc:
+RTC_DS1307 rtc;
+
+// make keypad:
 const byte ROWS = 4;
 const byte COLS = 4;
 
@@ -19,9 +24,10 @@ byte colPins[COLS] = {16, 4, 0, 2};      // connect to keypad col pins
 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
+// make lcd:
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-bool alarmActive = true; // should be false but testing rn
+bool alarmActive = false; // should be false but testing rn
 
 void setup() {
     // put your setup code here, to run once:
@@ -31,9 +37,60 @@ void setup() {
     // make display:
     lcd.init();
     lcd.backlight();
+
+    // initalize time:
+    rtc.begin();
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 }
 
 void loop() {
+    DateTime now = rtc.now();
+    char key = keypad.getKey();
+    
+    String currentTime;
+    lcd.setCursor(0, 0);
+    lcd.print(now.hour());
+    currentTime += String(now.hour()) + ":";
+    lcd.print(":");
+    if (now.minute() < 10) 
+    { 
+        lcd.print("0");
+        currentTime += "0"; 
+    }
+    lcd.print(now.minute());
+    currentTime += String(now.minute());
+    lcd.print(":");
+    if (now.second() < 10) 
+    { 
+        lcd.print("0");
+        currentTime += "0"; 
+    }   
+    lcd.print(now.second());
+    currentTime += String(now.second());    
+
+    // set alarm:
+    // press A to start set, A to cancel
+    // press hashtag to confirm
+    // use number pad to set time <-- 505 = 5:05am 16:30 = 4:30pm etc.
+    if (key == 'A')
+    {
+        if (!alarmActive)
+        {
+            // Serial.println("Setting alarm...");
+            lcd.clear();
+            lcd.print("Set Alarm:");
+            lcd.setCursor(0,1);
+            lcd.print("HH:MM");
+        }
+        else
+        {
+            // Serial.println("Alarm cancelled.");
+            alarmActive = false;
+            lcd.clear();
+            lcd.print("Alarm Cancelled");
+            delay(2000);
+        }
+    }
 
     // if time for alarm:
     // if current time == alarm time
@@ -44,7 +101,7 @@ void loop() {
 // move equation stuff to here
 
 // loop through this:
-    if (alarmActive)
+    if (alarmActive) // and currentTime == alarmTime
     {
         initAlarm();
         while (alarmActive)
