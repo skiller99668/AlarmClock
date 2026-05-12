@@ -38,9 +38,6 @@ void alarmLoop()
             lcd.print("Correct!");
             SOLVED = true;
             // Serial.println("Solved.");
-            delay(2000);
-            lcd.clear();
-
             // display current time
         }
         else
@@ -76,7 +73,8 @@ void alarmLoop()
             SOLVED = false;
             currentAns = "";
             // Serial.println("Alarm turned off.");
-            delay(1500);
+            lcd.clear();
+            delay(200);
         }
     }
     // general key press

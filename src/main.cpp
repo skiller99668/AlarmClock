@@ -51,6 +51,8 @@ void loop() {
     DateTime now = rtc.now();
     char key = keypad.getKey();
     
+    // Display current time onto lcd:
+    // =================================================
     lcd.setCursor(0, 0);
     if (now.hour() < 10) 
     { 
@@ -75,32 +77,19 @@ void loop() {
     }   
     lcd.print(now.second());
     currentTime += String(now.second());    
+    // =================================================
 
-    // reset time:
-    if (key == 'D')
-    {
-        settingTime = true;
-        settingHour = true;
-        makeTime("Hour", 23);
-        
-        while (settingTime)
-        {
-            makeTimeLoop();
-        }
-        rtc.adjust(DateTime(now.year(), now.month(), now.day(), newHour.toInt(), newMinute.toInt(), 50)); //change seconds to 1
-        newHour = "";
-        newMinute = "";
-    }
-
-    // set alarm:
-    // press A to start set, A to cancel
-    // press hashtag to confirm
-    // use number pad to set time <-- 505 = 5:05am 16:30 = 4:30pm etc.
+    /** 
+     * set alarm:
+     * press A to start set, A to cancel
+     * press hashtag to confirm
+     * use number pad to set time <-- 505 = 5:05am 16:30 = 4:30pm etc.
+     */ 
     if (key == 'A')
     {
         if (!alarmActive)
         {
-            Serial.println("Setting alarm...");
+            // Serial.println("Setting alarm...");
             settingAlarm = true;
             settingHour = true;
             makeTime("Hour", 23);
@@ -118,23 +107,49 @@ void loop() {
             alarmActive = false;
             lcd.clear();
             lcd.print("Alarm Cancelled");
-            delay(2000);
+            delay(1000);
             lcd.clear();
         }
     }
 
-    // if time for alarm:
-    // if current time == alarm time
-    // alarmActive = true;
-//  =========================================================================
-// if alarm time is right now:
+    if (key == 'B')
+    {
+        lcd.clear();
+        if (alarmActive)
+        {
+            lcd.print("Alarm Set For:");
+            lcd.setCursor(0, 1);
+            lcd.print(alarmTime);
+            delay(1000);
+            lcd.clear();
+        }
+        else
+        {
+            lcd.print("No Alarm Set.");
+            delay(1000);
+            lcd.clear();
+        }
 
-// move equation stuff to here
+    }
 
-// loop through this:
-    // Serial.println("Current Time: " + currentTime);
-    // Serial.println("Alarm Time: " + alarmTime);
+    // reset time:
+    if (key == 'D')
+    {
+        settingTime = true;
+        settingHour = true;
+        makeTime("Hour", 23);
+        
+        while (settingTime)
+        {
+            makeTimeLoop();
+        }
+        rtc.adjust(DateTime(now.year(), now.month(), now.day(), newHour.toInt(), newMinute.toInt(), 1));
+        newHour = "";
+        newMinute = "";
+    }
 
+    
+    // alarm sequence:
     if (alarmTime == currentTime) // and currentTime == alarmTime
     {
         lcd.clear();
@@ -144,12 +159,11 @@ void loop() {
             alarmLoop();
         }
     }
+    
+    // reset current time string:
     currentTime = "";
 }
 
-// next steps:
-// 1. get the current time system working on the lcd
-// 2. get the set alarm system working on the lcd 
-// 3. if current time == alarm time, then alarmActive = true
+//next steps:
 // then do the led stuff and then done!!!
 // add snooze button?

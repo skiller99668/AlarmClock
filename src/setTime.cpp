@@ -57,7 +57,7 @@ void makeTimeLoop()
             lcd.setCursor(colPos, 1);
             lcd.setCursor(colPos, 1);
             // Serial.println("Hour: " + newHour);
-            Serial.println("Minute: " + newMinute);
+            // Serial.println("Minute: " + newMinute);
         }
         else if (!settingHour && newMinute.length() > 0)
         {
@@ -97,7 +97,7 @@ void setTime()
         {
             lcd.clear();
             lcd.print("Invalid Hour.");
-            delay(2000);
+            delay(1000);
             newHour = "";
             makeTime("Hour", 23);
         }
@@ -122,7 +122,7 @@ void setTime()
         {
             lcd.clear();
             lcd.print("Invalid Minute.");
-            delay(2000);
+            delay(1000);
             newMinute = "";
             makeTime("Mins", 59);
         }
