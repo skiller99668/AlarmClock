@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 #include "alarmSequence.h"
 #include "equationMaker.h"
 
@@ -9,8 +7,9 @@ bool SOLVED = false;
 
 void initAlarm()
 {
-    // make display:
+    // make equation and display it:
     equation();
+    pinMode(BUZZER_PIN, OUTPUT);
 
     lcd.print(eq);
 
@@ -50,7 +49,7 @@ void alarmLoop()
             lcd.print("Incorrect.");
             lcd.setCursor(0,1);
             lcd.print("Try Again.");
-            delay(2000);
+            delay(1000);
             lcd.clear();
 
             currentAns = "";
@@ -68,13 +67,16 @@ void alarmLoop()
         lcd.print("                ");
         lcd.setCursor(colPos-1, 1);
     }
-    else if (key == '*')
+    else if (key == '*') // maybe move to main function so that the time already starts displaying
     {
         if (SOLVED)
         {
             noTone(BUZZER_PIN);
             alarmActive = false;
+            SOLVED = false;
+            currentAns = "";
             // Serial.println("Alarm turned off.");
+            delay(1500);
         }
     }
     // general key press

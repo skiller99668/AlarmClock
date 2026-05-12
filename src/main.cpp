@@ -4,6 +4,7 @@
 #include <RTClib.h>
 
 #include "alarmSequence.h"
+#include "setTime.h"
 
 // make rtc:
 RTC_DS1307 rtc;
@@ -28,11 +29,14 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 bool alarmActive = false; // should be false but testing rn
+bool settingTime = false;
+bool settingAlarm = false;
+
+String currentTime;
 
 void setup() {
     // put your setup code here, to run once:
     Serial.begin(9600);
-    pinMode(BUZZER_PIN, OUTPUT);
     
     // make display:
     lcd.init();
@@ -47,8 +51,12 @@ void loop() {
     DateTime now = rtc.now();
     char key = keypad.getKey();
     
-    String currentTime;
     lcd.setCursor(0, 0);
+    if (now.hour() < 10) 
+    { 
+        lcd.print("0");
+        currentTime += "0";
+    }
     lcd.print(now.hour());
     currentTime += String(now.hour()) + ":";
     lcd.print(":");
@@ -58,7 +66,7 @@ void loop() {
         currentTime += "0"; 
     }
     lcd.print(now.minute());
-    currentTime += String(now.minute());
+    currentTime += String(now.minute()) + ":";
     lcd.print(":");
     if (now.second() < 10) 
     { 
@@ -68,6 +76,22 @@ void loop() {
     lcd.print(now.second());
     currentTime += String(now.second());    
 
+    // reset time:
+    if (key == 'D')
+    {
+        settingTime = true;
+        settingHour = true;
+        makeTime("Hour", 23);
+        
+        while (settingTime)
+        {
+            makeTimeLoop();
+        }
+        rtc.adjust(DateTime(now.year(), now.month(), now.day(), newHour.toInt(), newMinute.toInt(), 50)); //change seconds to 1
+        newHour = "";
+        newMinute = "";
+    }
+
     // set alarm:
     // press A to start set, A to cancel
     // press hashtag to confirm
@@ -76,11 +100,17 @@ void loop() {
     {
         if (!alarmActive)
         {
-            // Serial.println("Setting alarm...");
-            lcd.clear();
-            lcd.print("Set Alarm:");
-            lcd.setCursor(0,1);
-            lcd.print("HH:MM");
+            Serial.println("Setting alarm...");
+            settingAlarm = true;
+            settingHour = true;
+            makeTime("Hour", 23);
+            while (settingAlarm)
+            {
+                makeTimeLoop();
+            }
+            newHour = "";
+            newMinute = "";
+            alarmActive = true;
         }
         else
         {
@@ -89,6 +119,7 @@ void loop() {
             lcd.clear();
             lcd.print("Alarm Cancelled");
             delay(2000);
+            lcd.clear();
         }
     }
 
@@ -101,14 +132,19 @@ void loop() {
 // move equation stuff to here
 
 // loop through this:
-    if (alarmActive) // and currentTime == alarmTime
+    // Serial.println("Current Time: " + currentTime);
+    // Serial.println("Alarm Time: " + alarmTime);
+
+    if (alarmTime == currentTime) // and currentTime == alarmTime
     {
+        lcd.clear();
         initAlarm();
         while (alarmActive)
         {
             alarmLoop();
         }
     }
+    currentTime = "";
 }
 
 // next steps:
