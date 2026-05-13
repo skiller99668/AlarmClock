@@ -14,6 +14,7 @@ extern String newMinute;
 extern bool settingHour;
 extern bool settingTime;
 extern bool settingAlarm;
+extern bool alarmActive;
 
 void makeTime(String timeType, int range);
 void makeTimeLoop();

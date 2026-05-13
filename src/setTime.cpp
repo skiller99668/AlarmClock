@@ -86,6 +86,7 @@ void makeTimeLoop()
         lcd.clear();
         settingTime = false;
         settingAlarm = false;
+        alarmActive = false;
     }
 }
 

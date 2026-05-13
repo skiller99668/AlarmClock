@@ -92,6 +92,7 @@ void loop() {
             // Serial.println("Setting alarm...");
             settingAlarm = true;
             settingHour = true;
+            alarmActive = true;
             makeTime("Hour", 23);
             while (settingAlarm)
             {
@@ -99,12 +100,13 @@ void loop() {
             }
             newHour = "";
             newMinute = "";
-            alarmActive = true;
+            
         }
-        else
+        else 
         {
             // Serial.println("Alarm cancelled.");
             alarmActive = false;
+            alarmTime = "";
             lcd.clear();
             lcd.print("Alarm Cancelled");
             delay(1000);
@@ -120,13 +122,13 @@ void loop() {
             lcd.print("Alarm Set For:");
             lcd.setCursor(0, 1);
             lcd.print(alarmTime);
-            delay(1000);
+            delay(2000);
             lcd.clear();
         }
         else
         {
             lcd.print("No Alarm Set.");
-            delay(1000);
+            delay(2000);
             lcd.clear();
         }
 
@@ -150,6 +152,8 @@ void loop() {
 
     
     // alarm sequence:
+    // Serial.println("Current Time: " + currentTime);
+    // Serial.println("Alarm Time: " + alarmTime);
     if (alarmTime == currentTime) // and currentTime == alarmTime
     {
         lcd.clear();
@@ -158,6 +162,7 @@ void loop() {
         {
             alarmLoop();
         }
+        alarmTime = "";
     }
     
     // reset current time string:
