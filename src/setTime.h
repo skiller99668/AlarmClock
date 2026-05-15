@@ -9,6 +9,7 @@ extern LiquidCrystal_I2C lcd;
 extern Keypad keypad;
 
 extern String alarmTime;
+extern String lightTime;
 extern String newHour;
 extern String newMinute;
 extern bool settingHour;
@@ -19,5 +20,6 @@ extern bool alarmActive;
 void makeTime(String timeType, int range);
 void makeTimeLoop();
 void setTime();
+void setLightTime();
 
 #endif 

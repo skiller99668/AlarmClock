@@ -28,7 +28,7 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 // make lcd:
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-bool alarmActive = false; // should be false but testing rn
+bool alarmActive = false; 
 bool settingTime = false;
 bool settingAlarm = false;
 
@@ -98,6 +98,8 @@ void loop() {
             {
                 makeTimeLoop();
             }
+            if (alarmActive) {setLightTime();}
+            Serial.println("Light Time: " + lightTime);
             newHour = "";
             newMinute = "";
             
@@ -107,6 +109,7 @@ void loop() {
             // Serial.println("Alarm cancelled.");
             alarmActive = false;
             alarmTime = "";
+            lightTime = "";
             lcd.clear();
             lcd.print("Alarm Cancelled");
             delay(1000);
@@ -163,6 +166,14 @@ void loop() {
             alarmLoop();
         }
         alarmTime = "";
+    }
+
+    if (lightTime == currentTime)
+    {
+        // Serial.println("Light Time: " + lightTime);
+        // Serial.println("Current Time: " + currentTime);
+        // Serial.println("Turning on light...");
+        // turn on light
     }
     
     // reset current time string:

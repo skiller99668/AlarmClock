@@ -8,7 +8,7 @@
       "type": "wokwi-lcd1602",
       "id": "lcd1",
       "top": -41.6,
-      "left": -52,
+      "left": 44,
       "attrs": { "pins": "i2c" }
     },
     { "type": "wokwi-membrane-keypad", "id": "keypad1", "top": -386, "left": -253.6, "attrs": {} },
@@ -19,7 +19,14 @@
       "left": -411,
       "attrs": { "volume": "0.1" }
     },
-    { "type": "wokwi-ds1307", "id": "rtc1", "top": 129, "left": -105.5, "attrs": {} }
+    { "type": "wokwi-ds1307", "id": "rtc1", "top": 129, "left": -105.5, "attrs": {} },
+    {
+      "type": "wokwi-led-strip",
+      "id": "strip1",
+      "top": -84.3,
+      "left": -38.4,
+      "attrs": { "pixels": "8" }
+    }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
@@ -41,7 +48,10 @@
     [ "esp:GND.3", "rtc1:GND", "black", [ "h57.6", "v115.2" ] ],
     [ "rtc1:5V", "esp:5V", "red", [ "h0" ] ],
     [ "rtc1:SDA", "esp:21", "yellow", [ "h-220.8", "v-115.5" ] ],
-    [ "rtc1:SCL", "esp:22", "yellow", [ "h-230.4", "v-115.4" ] ]
+    [ "rtc1:SCL", "esp:22", "yellow", [ "h-230.4", "v-115.4" ] ],
+    [ "esp:GND.2", "strip1:VSS", "black", [ "h0" ] ],
+    [ "strip1:DIN", "esp:15", "green", [ "h0" ] ],
+    [ "strip1:VDD", "esp:VN", "red", [ "h0" ] ]
   ],
   "dependencies": {}
 }

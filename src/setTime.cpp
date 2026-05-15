@@ -7,6 +7,7 @@ int colPos;
 String alarmTime;
 String newHour;
 String newMinute;
+String lightTime;
 
 void makeTime(String timeType, int range)
 {
@@ -79,6 +80,7 @@ void makeTimeLoop()
         if (settingAlarm)
         {
             alarmTime = "";
+            alarmActive = false;
         }
         lcd.clear();
         lcd.print("Cancelled.");
@@ -86,7 +88,6 @@ void makeTimeLoop()
         lcd.clear();
         settingTime = false;
         settingAlarm = false;
-        alarmActive = false;
     }
 }
 
@@ -155,4 +156,37 @@ void setTime()
         }
     }
     
+}
+
+void setLightTime()
+{
+    if (newMinute.toInt() < 15)
+    {
+        int minAmnt = 15 - newMinute.toInt();
+        if (newHour.toInt() == 0)
+        {
+            lightTime = "23:" + String(60 - minAmnt) + ":00";
+        }
+        else if (newHour.toInt() - 1 < 10)
+        {
+            lightTime = "0" + String(newHour.toInt()-1) + ":" + String(60 - minAmnt) + ":00";
+        }
+        else
+        {
+            lightTime = String(newHour.toInt()-1) + ":" + String(60 - minAmnt) + ":00";
+        }
+
+    }
+    else if (newHour.toInt() == 00)
+    {
+        lightTime = "23:" + String(newMinute.toInt() - 15) + ":00";
+    }
+    else if (newHour.toInt() - 1 < 10)
+    {
+        lightTime = "0" + String(newHour.toInt()-1) + ":" + String(newMinute.toInt() - 15) + ":00";
+    }
+    else
+    {
+        lightTime = String(newHour.toInt()-1) + ":" + String(newMinute.toInt() - 15) + ":00";
+    }
 }
