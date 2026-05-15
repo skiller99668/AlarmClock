@@ -2,6 +2,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
 #include <RTClib.h>
+#include <FastLED.h>
 
 #include "alarmSequence.h"
 #include "setTime.h"
@@ -28,6 +29,12 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 // make lcd:
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
+// set up led strip:
+#define LED_PIN 15
+#define NUM_LEDS 8 // change this to the number of LEDs on the strip i buy
+CRGB leds[NUM_LEDS];
+
+
 bool alarmActive = false; 
 bool settingTime = false;
 bool settingAlarm = false;
@@ -45,6 +52,9 @@ void setup() {
     // initalize time:
     rtc.begin();
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
+    // initialize led:
+    FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
 }
 
 void loop() {
@@ -98,8 +108,6 @@ void loop() {
             {
                 makeTimeLoop();
             }
-            if (alarmActive) {setLightTime();}
-            Serial.println("Light Time: " + lightTime);
             newHour = "";
             newMinute = "";
             
@@ -109,11 +117,12 @@ void loop() {
             // Serial.println("Alarm cancelled.");
             alarmActive = false;
             alarmTime = "";
-            lightTime = "";
             lcd.clear();
             lcd.print("Alarm Cancelled");
             delay(1000);
             lcd.clear();
+            FastLED.setBrightness(0);
+            FastLED.show();
         }
     }
 
@@ -167,13 +176,19 @@ void loop() {
         }
         alarmTime = "";
     }
-
-    if (lightTime == currentTime)
+    int secondsToAlarm = secToAlarm();
+    if (secondsToAlarm <= 900 && alarmActive)
     {
         // Serial.println("Light Time: " + lightTime);
         // Serial.println("Current Time: " + currentTime);
         // Serial.println("Turning on light...");
-        // turn on light
+        //Serial.println("light on");
+        //Serial.println("Minutes to Alarm: " + String(minutesToAlarm));
+
+        fill_solid(leds, NUM_LEDS, CRGB(255, 147, 41)); // warm white color
+        FastLED.setBrightness(map(secondsToAlarm, 900, 0, 100, 255));
+        FastLED.show();
+        
     }
     
     // reset current time string:

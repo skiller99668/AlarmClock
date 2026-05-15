@@ -7,7 +7,6 @@ int colPos;
 String alarmTime;
 String newHour;
 String newMinute;
-String lightTime;
 
 void makeTime(String timeType, int range)
 {
@@ -158,35 +157,58 @@ void setTime()
     
 }
 
-void setLightTime()
+int secToAlarm()
 {
-    if (newMinute.toInt() < 15)
-    {
-        int minAmnt = 15 - newMinute.toInt();
-        if (newHour.toInt() == 0)
-        {
-            lightTime = "23:" + String(60 - minAmnt) + ":00";
-        }
-        else if (newHour.toInt() - 1 < 10)
-        {
-            lightTime = "0" + String(newHour.toInt()-1) + ":" + String(60 - minAmnt) + ":00";
-        }
-        else
-        {
-            lightTime = String(newHour.toInt()-1) + ":" + String(60 - minAmnt) + ":00";
-        }
+    String currentHour = currentTime.substring(0, 2);
+    String currentMinute = currentTime.substring(3, 5);
+    String currentSecond = currentTime.substring(6, 8);
 
-    }
-    else if (newHour.toInt() == 00)
+    int hourDiff = alarmTime.substring(0, 2).toInt() - currentHour.toInt();
+    int minuteDiff = alarmTime.substring(3, 5).toInt() - currentMinute.toInt();
+    int secondDiff = alarmTime.substring(6, 8).toInt() - currentSecond.toInt();
+
+    if (secondDiff < 0)
     {
-        lightTime = "23:" + String(newMinute.toInt() - 15) + ":00";
+        secondDiff += 60;
+        minuteDiff -= 1;
     }
-    else if (newHour.toInt() - 1 < 10)
+
+    if (minuteDiff < 0)
     {
-        lightTime = "0" + String(newHour.toInt()-1) + ":" + String(newMinute.toInt() - 15) + ":00";
+        minuteDiff += 60;
+        hourDiff -= 1;
     }
-    else
-    {
-        lightTime = String(newHour.toInt()-1) + ":" + String(newMinute.toInt() - 15) + ":00";
-    }
+
+    return hourDiff * 3600 + minuteDiff * 60 + secondDiff;
+
+
+    // if (newMinute.toInt() < 15)
+    // {
+    //     int minAmnt = 15 - newMinute.toInt();
+    //     if (newHour.toInt() == 0)
+    //     {
+    //         lightTime = "23:" + String(60 - minAmnt) + ":00";
+    //     }
+    //     else if (newHour.toInt() - 1 < 10)
+    //     {
+    //         lightTime = "0" + String(newHour.toInt()-1) + ":" + String(60 - minAmnt) + ":00";
+    //     }
+    //     else
+    //     {
+    //         lightTime = String(newHour.toInt()-1) + ":" + String(60 - minAmnt) + ":00";
+    //     }
+
+    // }
+    // else if (newHour.toInt() == 00)
+    // {
+    //     lightTime = "23:" + String(newMinute.toInt() - 15) + ":00";
+    // }
+    // else if (newHour.toInt() - 1 < 10)
+    // {
+    //     lightTime = "0" + String(newHour.toInt()-1) + ":" + String(newMinute.toInt() - 15) + ":00";
+    // }
+    // else
+    // {
+    //     lightTime = String(newHour.toInt()-1) + ":" + String(newMinute.toInt() - 15) + ":00";
+    // }
 }
