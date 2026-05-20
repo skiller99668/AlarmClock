@@ -8,7 +8,7 @@ A custom ESP32-based alarm clock with a math problem wake-up challenge, LED sunr
 - **LED sunrise simulation** — 15 minutes before the alarm, a WS2812B LED strip gradually brightens from dim amber to warm white to simulate a natural sunrise
 - **LCD display** — shows the current time, alarm time, and math problem
 - **4x4 keypad input** — used to set the time, set the alarm, and answer the math problem
-- **Audio** — plays MP3 files via DFPlayer Mini from a microSD card
+- **Audio** — passive buzzer for alarm sound, with DFPlayer Mini + MP3 playback planned
 - **RTC timekeeping** — DS3231 module keeps accurate time even when unplugged
 ## Hardware
  
@@ -18,19 +18,18 @@ A custom ESP32-based alarm clock with a math problem wake-up challenge, LED sunr
 | Display | LCD1602 with I2C adapter |
 | Input | 4x4 membrane keypad |
 | Lighting | WS2812B LED strip |
-| Audio | DFPlayer Mini + 3W speaker + microSD card |
+| Audio | Passive buzzer (DFPlayer Mini + speaker planned) |
 | Timekeeping | DS3231 RTC module |
-| Alarm sound | Passive buzzer |
 | Power | USB-C 5V |
  
 ## Wiring
  
 | Component | ESP32 Pin |
 |---|---|
-| LCD SDA | GPIO 25 |
-| LCD SCL | GPIO 26 |
-| RTC SDA | GPIO 25 |
-| RTC SCL | GPIO 26 |
+| LCD SDA | GPIO 21 |
+| LCD SCL | GPIO 22 |
+| RTC SDA | GPIO 21 |
+| RTC SCL | GPIO 22 |
 | Keypad R1-R4 | GPIO 19, 18, 5, 17 |
 | Keypad C1-C4 | GPIO 16, 4, 0, 2 |
 | Buzzer | GPIO 12 |
@@ -56,20 +55,25 @@ lib_deps =
  
 ```
 src/
-├── main.cpp          # setup, loop, state management
-├── equationMaker.cpp # math problem generation and answer checking
+├── main.cpp              # setup, loop, state management
+├── alarmSequence.cpp     # alarm trigger, buzzer, LED sunrise logic
+├── alarmSequence.h
+├── equationMaker.cpp     # math problem generation and answer checking
 ├── equationMaker.h
-├── display.cpp       # LCD and keypad logic
-└── display.h
+├── setTime.cpp           # time and alarm setting via keypad
+└── setTime.h
 ```
  
 ## Usage
  
 ### Setting the time
-On boot, press `A` to enter time setting mode. Enter the hour (0-23) followed by `#`, then the minute followed by `#`.
+On boot, press `D` to enter time setting mode. Enter the hour (0-23) followed by `#`, then the minute followed by `#`.
  
 ### Setting the alarm
-Press `B` to enter alarm setting mode. Enter the hour followed by `#`, then the minute followed by `#`.
+Press `A` to enter alarm setting mode. Enter the hour followed by `#`, then the minute followed by `#`.
+
+### Checking alarm
+Press `B` to check when an alarm was set, or if an alarm has been set at all.
  
 ### Alarm sequence
 1. 15 minutes before the alarm, the LED strip begins brightening

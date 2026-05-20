@@ -34,15 +34,11 @@ void makeTimeLoop()
         lcd.print(key);
         if (settingHour)
         {
-            newHour += key;
-            // Serial.println("Hour: " + newHour);
-            // Serial.println("Minute: " + newMinute);
+            newHour += key;    
         }
         else
         {
             newMinute += key;
-            // Serial.println("Hour: " + newHour);
-            // Serial.println("Minute: " + newMinute);
         }
     }
     // backspace key:
@@ -56,8 +52,6 @@ void makeTimeLoop()
             lcd.print("   ");
             lcd.setCursor(colPos, 1);
             lcd.setCursor(colPos, 1);
-            // Serial.println("Hour: " + newHour);
-            // Serial.println("Minute: " + newMinute);
         }
         else if (!settingHour && newMinute.length() > 0)
         {
@@ -67,8 +61,6 @@ void makeTimeLoop()
             lcd.print("   ");
             lcd.setCursor(colPos, 1);
             lcd.setCursor(colPos, 1);
-            // Serial.println("Hour: " + newHour);
-            // Serial.println("Minute: " + newMinute);
         }
     }
     // cancel key:
@@ -138,7 +130,6 @@ void setTime()
             {
                 alarmTime += newMinute + ":00";
                 lcd.print("Alarm Set For:");
-                // Serial.println("Alarm Time: " + alarmTime);
                 lcd.setCursor(0, 1);
                 lcd.print(newHour + ":" + newMinute);
             }
@@ -157,6 +148,7 @@ void setTime()
     
 }
 
+// Compares current time to alarm time and returns number of seconds until alarm goes off.
 int secToAlarm()
 {
     String currentHour = currentTime.substring(0, 2);
@@ -180,35 +172,4 @@ int secToAlarm()
     }
 
     return hourDiff * 3600 + minuteDiff * 60 + secondDiff;
-
-
-    // if (newMinute.toInt() < 15)
-    // {
-    //     int minAmnt = 15 - newMinute.toInt();
-    //     if (newHour.toInt() == 0)
-    //     {
-    //         lightTime = "23:" + String(60 - minAmnt) + ":00";
-    //     }
-    //     else if (newHour.toInt() - 1 < 10)
-    //     {
-    //         lightTime = "0" + String(newHour.toInt()-1) + ":" + String(60 - minAmnt) + ":00";
-    //     }
-    //     else
-    //     {
-    //         lightTime = String(newHour.toInt()-1) + ":" + String(60 - minAmnt) + ":00";
-    //     }
-
-    // }
-    // else if (newHour.toInt() == 00)
-    // {
-    //     lightTime = "23:" + String(newMinute.toInt() - 15) + ":00";
-    // }
-    // else if (newHour.toInt() - 1 < 10)
-    // {
-    //     lightTime = "0" + String(newHour.toInt()-1) + ":" + String(newMinute.toInt() - 15) + ":00";
-    // }
-    // else
-    // {
-    //     lightTime = String(newHour.toInt()-1) + ":" + String(newMinute.toInt() - 15) + ":00";
-    // }
 }

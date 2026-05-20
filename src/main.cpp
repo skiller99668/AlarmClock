@@ -89,17 +89,11 @@ void loop() {
     currentTime += String(now.second());    
     // =================================================
 
-    /** 
-     * set alarm:
-     * press A to start set, A to cancel
-     * press hashtag to confirm
-     * use number pad to set time <-- 505 = 5:05am 16:30 = 4:30pm etc.
-     */ 
+    // set alarm:
     if (key == 'A')
     {
         if (!alarmActive)
         {
-            // Serial.println("Setting alarm...");
             settingAlarm = true;
             settingHour = true;
             alarmActive = true;
@@ -114,7 +108,6 @@ void loop() {
         }
         else 
         {
-            // Serial.println("Alarm cancelled.");
             alarmActive = false;
             alarmTime = "";
             lcd.clear();
@@ -126,6 +119,7 @@ void loop() {
         }
     }
 
+    // check alarm:
     if (key == 'B')
     {
         lcd.clear();
@@ -164,8 +158,6 @@ void loop() {
 
     
     // alarm sequence:
-    // Serial.println("Current Time: " + currentTime);
-    // Serial.println("Alarm Time: " + alarmTime);
     if (alarmTime == currentTime) // and currentTime == alarmTime
     {
         lcd.clear();
@@ -179,12 +171,7 @@ void loop() {
     int secondsToAlarm = secToAlarm();
     if (secondsToAlarm <= 900 && alarmActive)
     {
-        // Serial.println("Light Time: " + lightTime);
-        // Serial.println("Current Time: " + currentTime);
-        // Serial.println("Turning on light...");
-        //Serial.println("light on");
-        //Serial.println("Minutes to Alarm: " + String(minutesToAlarm));
-
+        // Start at 100 brightness at 15 minutes and gradually increase to 255 brightness at alarm time (per second)
         fill_solid(leds, NUM_LEDS, CRGB(255, 147, 41)); // warm white color
         FastLED.setBrightness(map(secondsToAlarm, 900, 0, 100, 255));
         FastLED.show();
@@ -194,7 +181,3 @@ void loop() {
     // reset current time string:
     currentTime = "";
 }
-
-//next steps:
-// then do the led stuff and then done!!!
-// add snooze button?

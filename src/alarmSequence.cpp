@@ -22,8 +22,6 @@ void initAlarm()
 
 void alarmLoop() 
 {
-    // KEYPAD LOGIC
-// =========================
     // key pad setup
     char key = keypad.getKey();
     int colPos = 2 + currentAns.length();
@@ -84,5 +82,4 @@ void alarmLoop()
         lcd.print(key);
         currentAns = currentAns + key;
     }
-// ==========================
 }
