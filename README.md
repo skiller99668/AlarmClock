@@ -1,6 +1,6 @@
 # AlarmClock
- 
-A custom ESP32-based alarm clock with a math problem wake-up challenge, LED sunrise simulation, and audio playback.
+
+A personal project of mine, designed to help make getting up in the mornings easier and prevent snoozing past your alarm. It consists of A custom ESP32-based alarm clock with a math problem wake-up challenge, LED sunrise simulation, and audio playback.
  
 ## Features
  
