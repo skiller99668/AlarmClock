@@ -1,6 +1,11 @@
 #include "alarmSequence.h"
 #include "equationMaker.h"
 
+#include <DFRobotDFPlayerMini.h>
+#include <HardwareSerial.h>
+
+HardwareSerial mySerial(1);
+DFRobotDFPlayerMini player;
 
 String currentAns;
 bool SOLVED = false;
@@ -17,6 +22,12 @@ void initAlarm()
     lcd.print("= ");
 
     tone(BUZZER_PIN, 1000); // play buzzer
+
+    // setup for DFPlayer (to replace buzzer with music)
+    //mySerial.begin(9600, SERIAL_8N1, 16, 17); // RX, TX
+    //player.begin(mySerial);
+    //player.volume(10); // set volume to 10 (0-30)
+    //player.loop(1); // play the first track on the SD card
 
 }
 
@@ -67,6 +78,9 @@ void alarmLoop()
         if (SOLVED)
         {
             noTone(BUZZER_PIN);
+            // will be:
+            // player.stop();
+
             alarmActive = false;
             SOLVED = false;
             currentAns = "";
