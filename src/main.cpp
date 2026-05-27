@@ -104,6 +104,7 @@ void loop() {
             }
             newHour = "";
             newMinute = "";
+            FastLED.clear();
             
         }
         else 

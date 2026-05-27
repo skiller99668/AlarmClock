@@ -1,5 +1,6 @@
 #include "alarmSequence.h"
-#include "equationMaker.h"
+//#include "equationMaker.h"
+#include "claudeEquation.h"
 
 #include <DFRobotDFPlayerMini.h>
 #include <HardwareSerial.h>
@@ -9,11 +10,14 @@ DFRobotDFPlayerMini player;
 
 String currentAns;
 bool SOLVED = false;
+unsigned long startTime = millis();
 
 void initAlarm()
 {
     // make equation and display it:
-    equation();
+    //equation();
+    // change to getEquation() to use claude api instead of random generation
+    getEquation();
     pinMode(BUZZER_PIN, OUTPUT);
 
     lcd.print(eq);
@@ -28,7 +32,6 @@ void initAlarm()
     //player.begin(mySerial);
     //player.volume(10); // set volume to 10 (0-30)
     //player.loop(1); // play the first track on the SD card
-
 }
 
 void alarmLoop() 
@@ -46,8 +49,9 @@ void alarmLoop()
             lcd.clear();
             lcd.print("Correct!");
             SOLVED = true;
+            unsigned long elapsed = (millis() - startTime)/1000;
+            adjustDifficulty(elapsed);
             // Serial.println("Solved.");
-            // display current time
         }
         else
         {
