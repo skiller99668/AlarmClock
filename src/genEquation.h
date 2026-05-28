@@ -1,5 +1,5 @@
-#ifndef CLAUDE_EQUATION_H
-#define CLAUDE_EQUATION_H
+#ifndef GENEQUATION_H
+#define GENEQUATION_H
 
 #include <Arduino.h>
 

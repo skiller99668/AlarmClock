@@ -1,6 +1,5 @@
 #include "alarmSequence.h"
-//#include "equationMaker.h"
-#include "claudeEquation.h"
+#include "genEquation.h"
 
 #include <DFRobotDFPlayerMini.h>
 #include <HardwareSerial.h>
@@ -14,9 +13,6 @@ unsigned long startTime = millis();
 
 void initAlarm()
 {
-    // make equation and display it:
-    //equation();
-    // change to getEquation() to use claude api instead of random generation
     getEquation();
     pinMode(BUZZER_PIN, OUTPUT);
 
