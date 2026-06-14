@@ -2,19 +2,16 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <WiFiClientSecure.h>
+
 #include "config.h"
 
-const char* ssid = WIFI_SSID;
-const char* password = WIFI_PASSWORD;
-const char* apiKey = API_KEY;
+const char* apiKey = LLM_API_KEY;
 
 int ANS;
 String eq;
 
 int difficulty = 1; // out of 55 for now
-
-//WiFi.begin(ssid, password);
-//while (WiFi.status() != WL_CONNECTED) delay(500);
 
 int getNum(int x) {
   return random(x);
@@ -74,7 +71,7 @@ void equation()
 
     setAns(a, b, sign);
 
-    eq = String(a) + " " + sign + " " + String(b);
+    eq = String(a) + sign + String(b);
 
 }
 
@@ -85,30 +82,132 @@ void adjustDifficulty(float elapsed)
     //Serial.println("Difficulty: " + String(difficulty) + "/55");
 }
 
-void getEquation() 
+// Convert "sqrt(144)" -> "\x01144" so the LCD shows √144 (1 column for the symbol).
+// eq is display-only; ANS is what gets compared, so this swap is purely cosmetic.
+String toDisplay(String s)
 {
-    HTTPClient http;
-    http.begin("https://api.anthropic.com/v1/messages");
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("x-api-key", apiKey);
-    http.addHeader("anthropic-version", "2023-06-01");
+    int i;
+    while ((i = s.indexOf("sqrt(")) != -1)
+    {
+        int close = s.indexOf(')', i + 5);
+        if (close == -1) break;
+        s = s.substring(0, i) + '\x01' + s.substring(i + 5, close) + s.substring(close + 1);
+    }
+    return s;
+}
 
-    String body = "{\"model\":\"claude-haiku-4-5-20251001\",\"max_tokens\":100,\"messages\":[{\"role\":\"user\",\"content\":\"Generate a math equation at difficulty level " + String(difficulty) + " out of 55. Level 1 is very simple like 3 + 5. Level 55 is extremely complex with many operators, large numbers, powers, square roots, and brackets. Scale complexity smoothly between those extremes. Follow BEDMAS. Ensuer the equation evaluates to a whole number. Respond in JSON only, no extra text. Max 16 characters including spaces. Format: {\\\"equation\\\": \\\"7 + 5\\\", \\\"answer\\\": 12}\"}]}";
+void getEquation()
+{
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    unsigned long start = millis();
+    while (WiFi.status() != WL_CONNECTED && millis() - start < 10000)
+        delay(250);
+
+    if (WiFi.status() != WL_CONNECTED) {  // no network -> local fallback
+        equation();
+        return;
+    }
+
+    // pick a random SHAPE (structure only) so each alarm looks different;
+    // the difficulty band below decides which operations are actually allowed.
+    static const char* forms[] = {
+        "leads with a bracketed group",
+        "ends with a bracketed group",
+        "features an even division",
+        "features a subtraction between two parts",
+        "is a left-to-right chain without brackets",
+        "mixes precedence like a*b+c"
+    };
+    String form = forms[esp_random() % 6];   // esp_random() = true RNG, no seeding needed
+
+    // difficulty controls which operations are allowed (band changes at 15/30/45)...
+    const char* band;
+    if (difficulty <= 15)
+        band = "use only + - * / with no powers or square roots";
+    else if (difficulty <= 30)
+        band = "use + - * / and you may use squares (exponent 2), but no square roots and no exponent above 2";
+    else if (difficulty <= 45)
+        band = "use + - * /, square roots of perfect squares, and exponents up to 4";
+    else
+        band = "use + - * /, square roots of perfect squares, and exponents up to 6";
+
+    // ...and how many operations and how large the numbers get (smooth per level)
+    int ops = 2 + (difficulty - 1) / 12;   // ~2 at level 1, up to 6 near level 55
+    if (ops > 6) ops = 6;
+    int maxNum = 10 + difficulty * 2;      // grows with level
+    if (maxNum > 64) maxNum = 64;          // keep ordinary numbers to 2 digits (sqrt is exempt)
+
+    WiFiClientSecure client;
+    client.setInsecure();                    // skip cert validation (fine for personal use)
+
+    HTTPClient http;
+    http.begin(client, LLM_URL);
+    http.setTimeout(15000); // hosted models can take a few seconds to respond
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", String("Bearer ") + apiKey);
+
+    String body =
+        "{"
+            "\"model\":\"" LLM_MODEL "\","
+            "\"max_tokens\":1024,"
+            "\"temperature\":0.8,"
+            "\"reasoning_effort\":\"low\","
+            "\"response_format\":{\"type\":\"json_object\"},"
+            "\"messages\":[{\"role\":\"user\",\"content\":\""
+                "Generate ONE math equation for a wake-up alarm "
+                "at difficulty level "
+                + String(difficulty) +
+                " out of 55, where 1 is trivial and 55 is expert. "
+                "For this level, "
+                + band +
+                ". Aim for about "
+                + String(ops) +
+                " operations with ordinary numbers up to "
+                + String(maxNum) +
+                " (square roots may use perfect squares up to three digits), "
+                "and at most two sets of brackets. "
+                "Write square roots as sqrt(N) of perfect squares "
+                "only, powers use ^, follow BEDMAS. "
+                "The result must be a positive whole number under 2000000000. "
+                "On the 16-column display sqrt(N) shows as 1 plus the digits "
+                "of N. It MUST fit within 16 columns: if it would not fit, "
+                "use fewer operations or smaller numbers. Fitting is required. "
+                "Shape it so it "
+                + form +
+                ". Respond in JSON only: "
+                "{\\\"equation\\\": \\\"7 + 5\\\", \\\"answer\\\": 12}"
+            "\"}]}";
     int code = http.POST(body);
-    if (code == 200) {
-        StaticJsonDocument<1024> doc;
-        deserializeJson(doc, http.getString());
-        String text = doc["content"][0]["text"].as<String>();
-        
-        StaticJsonDocument<256> eq_doc;
-        deserializeJson(eq_doc, text);
-        eq = eq_doc["equation"].as<String>();
+    if (code == 200) 
+    {
+        JsonDocument filter;
+        filter["choices"][0]["message"]["content"] = true;
+
+        JsonDocument doc;
+        DeserializationError err = deserializeJson(
+            doc, http.getString(), DeserializationOption::Filter(filter));
+
+        String text = doc["choices"][0]["message"]["content"].as<String>();
+
+        JsonDocument eq_doc;
+        DeserializationError eqErr = deserializeJson(eq_doc, text);
+        String rawEq = eq_doc["equation"].as<String>();
         ANS = eq_doc["answer"].as<int>();
+        eq  = toDisplay(rawEq);               // sqrt(N) -> √N for the LCD
+
+        // bad parse, empty, or too wide for the 16-col display -> local fallback
+        if (err || eqErr || rawEq.length() == 0 || eq.length() > 16)
+        {
+            equation();
+        }
     }
     else // if AI fails go back to old equation generation
     {
         equation();
     }
     http.end();
+
+    WiFi.disconnect(true); // disconnect cuz only need wifi for equation generation
 }
+
 

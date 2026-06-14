@@ -13,15 +13,16 @@ unsigned long startTime = millis();
 
 void initAlarm()
 {
-    getEquation();
     pinMode(BUZZER_PIN, OUTPUT);
+    tone(BUZZER_PIN, 1000); // play buzzer
+
+
+    getEquation();
 
     lcd.print(eq);
 
     lcd.setCursor(0,1);
     lcd.print("= ");
-
-    tone(BUZZER_PIN, 1000); // play buzzer
 
     // setup for DFPlayer (to replace buzzer with music)
     //mySerial.begin(9600, SERIAL_8N1, 16, 17); // RX, TX

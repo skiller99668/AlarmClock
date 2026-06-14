@@ -49,6 +49,19 @@ void setup() {
     lcd.init();
     lcd.backlight();
 
+    // custom √ glyph (char code 1) used by toDisplay() in genEquation.cpp
+    byte sqrtGlyph[8] = {
+        0b00011,
+        0b00010,
+        0b00010,
+        0b00010,
+        0b10010,
+        0b01010,
+        0b00110,
+        0b00010
+    };
+    lcd.createChar(1, sqrtGlyph);
+
     // initalize time:
     rtc.begin();
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
