@@ -15,7 +15,7 @@ void makeTime(String timeType, int range)
 
     lcd.clear();
 
-    if settingAlarm
+    if (settingAlarm)
     {
         lcd.print("Set Alarm:");
     }
@@ -23,7 +23,7 @@ void makeTime(String timeType, int range)
     {
         lcd.print("Set Time:");
     }
-    
+
     lcd.setCursor(0, 1);
     lcd.print(timeType + " (0-" + range + "): ");
     lcd.setCursor(13, 1);
@@ -133,6 +133,10 @@ void setTime()
             if (newMinute.length() == 1)
             {
             newMinute = "0" + newMinute;
+            }
+            else if (newMinute.length() > 2)
+            {
+                newMinute = newMinute.substring(1, newMinute.length());
             }
             lcd.clear();
             if (settingAlarm)
