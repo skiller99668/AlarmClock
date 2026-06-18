@@ -122,6 +122,7 @@ void loop() {
             newHour = "";
             newMinute = "";
             FastLED.clear();
+            FastLED.show();
             
         }
         else 
@@ -132,7 +133,7 @@ void loop() {
             lcd.print("Alarm Cancelled");
             delay(1000);
             lcd.clear();
-            FastLED.setBrightness(0);
+            FastLED.clear();
             FastLED.show();
         }
     }
@@ -185,13 +186,15 @@ void loop() {
             alarmLoop();
         }
         alarmTime = "";
+        FastLED.clear();
+        FastLED.show();
     }
     int secondsToAlarm = secToAlarm();
     if (secondsToAlarm <= 900 && alarmActive)
     {
-        // Start at 100 brightness at 15 minutes and gradually increase to 255 brightness at alarm time (per second)
+        // Start at 0 brightness at 15 minutes and gradually increase to 255 brightness at alarm time (per second)
         fill_solid(leds, NUM_LEDS, CRGB(255, 147, 41)); // warm white color
-        FastLED.setBrightness(map(secondsToAlarm, 900, 0, 100, 255));
+        FastLED.setBrightness(map(secondsToAlarm, 900, 0, 0, 255));
         FastLED.show();
         
     }

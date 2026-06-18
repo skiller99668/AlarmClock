@@ -4,9 +4,11 @@
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
+#include <FastLED.h>
 
 extern LiquidCrystal_I2C lcd;
 extern Keypad keypad;
+extern CRGB leds[];
 
 extern String alarmTime;
 extern String newHour;
