@@ -1,14 +1,16 @@
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
-#include <RTClib.h>
+#include <ThreeWire.h>
+#include <RtcDS1302.h>
 #include <FastLED.h>
 
 #include "alarmSequence.h"
 #include "setTime.h"
 
 // make rtc:
-RTC_DS1307 rtc;
+ThreeWire myWire(27, 14, 26); // IO, SCLK, CE
+RtcDS1302<ThreeWire> rtc(myWire);
 
 // make keypad:
 const byte ROWS = 4;
@@ -44,6 +46,7 @@ String currentTime;
 void setup() {
     // put your setup code here, to run once:
     Serial.begin(9600);
+    Serial.println("Starting up...");
     
     // make display:
     lcd.init();
@@ -63,43 +66,44 @@ void setup() {
     lcd.createChar(1, sqrtGlyph);
 
     // initalize time:
-    rtc.begin();
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    rtc.Begin();
+    RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
+    rtc.SetDateTime(compiled);
 
     // initialize led:
     FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
 }
 
 void loop() {
-    DateTime now = rtc.now();
+    RtcDateTime now = rtc.GetDateTime();
     char key = keypad.getKey();
     
     // Display current time onto lcd:
     // =================================================
     lcd.setCursor(0, 0);
-    if (now.hour() < 10) 
+    if (now.Hour() < 10) 
     { 
         lcd.print("0");
         currentTime += "0";
     }
-    lcd.print(now.hour());
-    currentTime += String(now.hour()) + ":";
+    lcd.print(now.Hour());
+    currentTime += String(now.Hour()) + ":";
     lcd.print(":");
-    if (now.minute() < 10) 
+    if (now.Minute() < 10) 
     { 
         lcd.print("0");
         currentTime += "0"; 
     }
-    lcd.print(now.minute());
-    currentTime += String(now.minute()) + ":";
+    lcd.print(now.Minute());
+    currentTime += String(now.Minute()) + ":";
     lcd.print(":");
-    if (now.second() < 10) 
+    if (now.Second() < 10) 
     { 
         lcd.print("0");
         currentTime += "0"; 
     }   
-    lcd.print(now.second());
-    currentTime += String(now.second());    
+    lcd.print(now.Second());
+    currentTime += String(now.Second());    
     // =================================================
 
     // set alarm:
@@ -165,7 +169,7 @@ void loop() {
         {
             makeTimeLoop();
         }
-        rtc.adjust(DateTime(now.year(), now.month(), now.day(), newHour.toInt(), newMinute.toInt(), 1));
+        rtc.SetDateTime(RtcDateTime(now.Year(), now.Month(), now.Day(), newHour.toInt(), newMinute.toInt(), 1));
         newHour = "";
         newMinute = "";
     }
