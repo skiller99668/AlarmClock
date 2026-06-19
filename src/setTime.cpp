@@ -1,6 +1,9 @@
 #include <Arduino.h>
+#include <Preferences.h>
 
 #include "setTime.h"
+
+Preferences prefs;
 
 bool settingHour;
 int colPos;
@@ -12,7 +15,6 @@ void makeTime(String timeType, int range)
 {
     char key = keypad.getKey();
     
-
     lcd.clear();
 
     if (settingAlarm)
@@ -145,6 +147,11 @@ void setTime()
                 lcd.print("Alarm Set For:");
                 lcd.setCursor(0, 1);
                 lcd.print(newHour + ":" + newMinute);
+
+                prefs.begin("alarmClock", false);
+                prefs.putString("alarmTime", alarmTime);
+                prefs.putBool("alarmActive", true);
+                prefs.end();
             }
             else if(settingTime)
             {

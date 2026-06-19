@@ -48,6 +48,15 @@ void setup() {
     Serial.begin(9600);
     Serial.println("Starting up...");
     
+    // initialize alarm:
+    prefs.begin("alarmClock", false);
+    if (prefs.isKey("alarmActive"))
+    {
+        alarmActive = prefs.getBool("alarmActive");
+        alarmTime = prefs.getString("alarmTime");
+    }
+    prefs.end();
+
     // make display:
     lcd.init();
     lcd.backlight();
@@ -67,8 +76,14 @@ void setup() {
 
     // initalize time:
     rtc.Begin();
-    RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
-    rtc.SetDateTime(compiled);
+    if (!rtc.IsDateTimeValid() || rtc.GetIsWriteProtected()) 
+    {
+        RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
+        rtc.SetDateTime(compiled);
+    }
+    rtc.SetIsWriteProtected(false);
+    rtc.SetIsRunning(true);
+
 
     // initialize led:
     FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
@@ -131,6 +146,9 @@ void loop() {
             alarmTime = "";
             lcd.clear();
             lcd.print("Alarm Cancelled");
+            prefs.begin("alarmClock", false);
+            prefs.clear();
+            prefs.end();
             delay(1000);
             lcd.clear();
             FastLED.clear();
@@ -185,7 +203,6 @@ void loop() {
         {
             alarmLoop();
         }
-        alarmTime = "";
         FastLED.clear();
         FastLED.show();
     }

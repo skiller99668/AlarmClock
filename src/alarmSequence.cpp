@@ -82,7 +82,6 @@ void alarmLoop()
             // will be:
             // player.stop();
 
-            alarmActive = false;
             SOLVED = false;
             currentAns = "";
             // Serial.println("Alarm turned off.");
