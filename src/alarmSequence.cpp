@@ -10,12 +10,13 @@ DFRobotDFPlayerMini player;
 String currentAns;
 bool SOLVED = false;
 unsigned long startTime = millis();
+bool alarmON = false;
 
 void initAlarm()
 {
     pinMode(BUZZER_PIN, OUTPUT);
     tone(BUZZER_PIN, 1000); // play buzzer
-
+    alarmON = true;
 
     getEquation();
 
@@ -84,6 +85,7 @@ void alarmLoop()
 
             SOLVED = false;
             currentAns = "";
+            alarmON = false;
             // Serial.println("Alarm turned off.");
             lcd.clear();
             delay(200);

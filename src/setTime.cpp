@@ -191,5 +191,11 @@ int secToAlarm()
         hourDiff -= 1;
     }
 
-    return hourDiff * 3600 + minuteDiff * 60 + secondDiff;
+    int secs = hourDiff * 3600 + minuteDiff * 60 + secondDiff;
+    if (secs < 0)
+    {
+        secs += 86400; // add 24 hours in seconds if alarm is for the next day
+    }
+
+    return secs;
 }

@@ -10,6 +10,7 @@
 extern LiquidCrystal_I2C lcd;
 extern Keypad keypad;
 extern bool alarmActive;
+extern bool alarmON;
 
 void initAlarm();
 void alarmLoop();

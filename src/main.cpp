@@ -199,21 +199,28 @@ void loop() {
     {
         lcd.clear();
         initAlarm();
-        while (alarmActive)
+        while (alarmON)
         {
             alarmLoop();
         }
         FastLED.clear();
         FastLED.show();
     }
+
     int secondsToAlarm = secToAlarm();
+    // Serial.println("Seconds to alarm: " + String(secondsToAlarm));
+    
     if (secondsToAlarm <= 900 && alarmActive)
     {
         // Start at 0 brightness at 15 minutes and gradually increase to 255 brightness at alarm time (per second)
         fill_solid(leds, NUM_LEDS, CRGB(255, 147, 41)); // warm white color
         FastLED.setBrightness(map(secondsToAlarm, 900, 0, 0, 255));
+        FastLED.show();   
+    }
+    if (secondsToAlarm > 900)
+    {
+        FastLED.clear();
         FastLED.show();
-        
     }
     
     // reset current time string:
