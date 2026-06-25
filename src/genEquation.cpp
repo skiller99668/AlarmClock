@@ -77,8 +77,22 @@ void equation()
 
 void adjustDifficulty(float elapsed) 
 {
-    if (elapsed > 45 && difficulty > 1) difficulty--;
-    else if (elapsed < 45 && difficulty < 55) difficulty++;
+    if (elapsed > 45 && difficulty > 1)
+    {
+        difficulty--;
+    } 
+    else if (elapsed < 45 && difficulty < 55)
+    {
+        difficulty++;
+    } 
+    else if (elapsed < 15 && difficulty < 54)
+    {
+        difficulty += 2;
+    }
+     else if (elapsed > 70 && difficulty > 2)
+    {
+        difficulty -= 2;
+    }
     //Serial.println("Difficulty: " + String(difficulty) + "/55");
 }
 
@@ -108,28 +122,70 @@ void getEquation()
         return;
     }
 
-    // pick a random SHAPE (structure only) so each alarm looks different;
-    // the difficulty band below decides which operations are actually allowed.
-    static const char* forms[] = {
-        "leads with a bracketed group",
-        "ends with a bracketed group",
-        "features an even division",
-        "features a subtraction between two parts",
-        "is a left-to-right chain without brackets",
-        "mixes precedence like a*b+c"
+    // pick a random SHAPE (structure only) so each alarm looks different.
+    // Each form is tagged with the operations it needs; we only offer forms
+    // whose operations the current difficulty unlocks, so a low ("+ - only")
+    // level never gets asked for a square root, power, etc. it isn't allowed.
+    enum { kMul = 1, kDiv = 2, kBrk = 4, kPow = 8, kRoot = 16 };
+    struct Form { const char* text; uint8_t need; };
+    static const Form forms[] = {
+        {"leads with a bracketed group",                                kBrk},
+        {"ends with a bracketed group",                                 kBrk},
+        {"features an even division (divisor divides evenly)",          kDiv},
+        {"features a subtraction between two parts",                    0},
+        {"is a left-to-right chain without brackets",                   0},
+        {"mixes precedence like a*b+c",                                 kMul},
+        {"has nested brackets like (a+(b*c))",                          kBrk | kMul},
+        {"is a product of two sums like (a+b)*(c+d)",                   kBrk | kMul},
+        {"alternates + and - like a-b+c-d",                            0},
+        {"uses a power as one term in a sum or difference",             kPow},
+        {"has a square root as one term in a larger expression",        kRoot},
+        {"is a chain of three multiplications",                         kMul},
+        {"has a large number divided by a bracketed sub-expression",    kDiv | kBrk},
+        {"uses subtraction inside brackets then multiplies the result", kBrk | kMul},
+        {"mixes division and addition in the form a/b+c*d",             kDiv | kMul},
     };
-    String form = forms[esp_random() % 6];   // esp_random() = true RNG, no seeding needed
 
-    // difficulty controls which operations are allowed (band changes at 15/30/45)...
+    // which operation classes this difficulty unlocks (mirrors the bands below)
+    uint8_t allowed = 0;
+    if (difficulty >= 6)  allowed |= kMul | kDiv;  // multiplication & division
+    if (difficulty >= 16) allowed |= kBrk;         // brackets
+    if (difficulty >= 21) allowed |= kPow;         // powers / exponents
+    if (difficulty >= 31) allowed |= kRoot;        // square roots
+
+    // keep only forms whose required ops are all unlocked, then pick one
+    const int FORM_COUNT = sizeof(forms) / sizeof(forms[0]);
+    const char* picks[FORM_COUNT];
+    int n = 0;
+    for (int i = 0; i < FORM_COUNT; i++)
+        if ((forms[i].need & ~allowed) == 0)
+            picks[n++] = forms[i].text;
+    String form = picks[esp_random() % n];   // esp_random() = true RNG, no seeding needed
+
+    // difficulty controls which operations are allowed (band changes every 5 levels)
     const char* band;
-    if (difficulty <= 15)
-        band = "use only + - * / with no powers or square roots";
+    if (difficulty <= 5)
+        band = "use only + and -, no multiplication, no division, no powers, no roots";
+    else if (difficulty <= 10)
+        band = "use + - * /, no powers or roots";
+    else if (difficulty <= 15)
+        band = "use + - * /, no powers or roots";
+    else if (difficulty <= 20)
+        band = "use + - * / with brackets, no powers or roots";
+    else if (difficulty <= 25)
+        band = "use + - * / with brackets; you may also use squares (exponent 2 only), no roots";
     else if (difficulty <= 30)
-        band = "use + - * / and you may use squares (exponent 2), but no square roots and no exponent above 2";
+        band = "use + - * / with brackets and squares (exponent 2); you may also use cubes (exponent 3), no roots";
+    else if (difficulty <= 35)
+        band = "use + - * / with brackets, exponents up to 3, and square roots of small perfect squares (4,9,16,25,36,49)";
+    else if (difficulty <= 40)
+        band = "use + - * / with brackets, exponents up to 4, and square roots of perfect squares up to 144";
     else if (difficulty <= 45)
-        band = "use + - * /, square roots of perfect squares, and exponents up to 4";
+        band = "use + - * / with brackets, exponents up to 4, and square roots of perfect squares up to 225";
+    else if (difficulty <= 50)
+        band = "use + - * / with brackets, exponents up to 5, and square roots of perfect squares up to 400";
     else
-        band = "use + - * /, square roots of perfect squares, and exponents up to 6";
+        band = "use + - * / with brackets, exponents up to 6, and square roots of perfect squares up to 900";
 
     // ...and how many operations and how large the numbers get (smooth per level)
     int ops = 2 + (difficulty - 1) / 12;   // ~2 at level 1, up to 6 near level 55
@@ -169,8 +225,8 @@ void getEquation()
                 "Write square roots as sqrt(N) of perfect squares "
                 "only, powers use ^, follow BEDMAS. "
                 "The result must be a positive whole number under 2000000000. "
-                "On the 16-column display sqrt(N) shows as 1 plus the digits "
-                "of N. It MUST fit within 16 columns: if it would not fit, "
+                "On the 15-column display sqrt(N) shows as 1 plus the digits "
+                "of N. It MUST fit within 15 columns: if it would not fit, "
                 "use fewer operations or smaller numbers. Fitting is required. "
                 "Shape it so it "
                 + form +
