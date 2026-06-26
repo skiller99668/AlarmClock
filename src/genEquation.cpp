@@ -158,14 +158,14 @@ void getEquation()
     if (difficulty >= 21) allowed |= kPow;         // powers / exponents
     if (difficulty >= 31) allowed |= kRoot;        // square roots
 
-    // keep only forms whose required ops are all unlocked, then pick one
+    // keep only forms whose required ops are all unlocked; one is drawn per
+    // generation attempt below (esp_random() = true RNG, no seeding needed)
     const int FORM_COUNT = sizeof(forms) / sizeof(forms[0]);
     const char* picks[FORM_COUNT];
     int n = 0;
     for (int i = 0; i < FORM_COUNT; i++)
         if ((forms[i].need & ~allowed) == 0)
             picks[n++] = forms[i].text;
-    String form = picks[esp_random() % n];   // esp_random() = true RNG, no seeding needed
 
     // difficulty controls which operations are allowed (band changes every 5 levels)
     const char* band;
@@ -201,72 +201,91 @@ void getEquation()
     WiFiClientSecure client;
     client.setInsecure();                    // skip cert validation (fine for personal use)
 
-    HTTPClient http;
-    http.begin(client, LLM_URL);
-    http.setTimeout(15000); // hosted models can take a few seconds to respond
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization", String("Bearer ") + apiKey);
-
-    String body =
-        "{"
-            "\"model\":\"" LLM_MODEL "\","
-            "\"max_tokens\":1024,"
-            "\"temperature\":0.8,"
-            "\"reasoning_effort\":\"low\","
-            "\"response_format\":{\"type\":\"json_object\"},"
-            "\"messages\":[{\"role\":\"user\",\"content\":\""
-                "Generate ONE math equation for a wake-up alarm "
-                "at difficulty level "
-                + String(difficulty) +
-                " out of 55, where 1 is trivial and 55 is expert. "
-                "For this level, "
-                + band +
-                ". Aim for about "
-                + String(ops) +
-                " operations with ordinary numbers up to "
-                + String(maxNum) +
-                " (square roots may use perfect squares up to three digits), "
-                "and at most two sets of brackets. "
-                "Write square roots as sqrt(N) of perfect squares "
-                "only, powers use ^, follow BEDMAS. "
-                "The result must be a positive whole number under 2000000000. "
-                "On the 15-column display sqrt(N) shows as 1 plus the digits "
-                "of N. It MUST fit within 15 columns: if it would not fit, "
-                "use fewer operations or smaller numbers. Fitting is required. "
-                "Shape it so it "
-                + form +
-                ". Respond in JSON only: "
-                "{\\\"equation\\\": \\\"7 + 5\\\", \\\"answer\\\": 12}"
-            "\"}]}";
-    int code = http.POST(body);
-    if (code == 200) 
+    // Ask the model for an equation, but verify it actually obeys the band before
+    // accepting. The form picker can't stop the model from *spontaneously* adding a
+    // sqrt/power it wasn't asked for, so if the result uses an operation this level
+    // hasn't unlocked we just regenerate (a few tries) instead of dropping to the
+    // much weaker local generator.
+    bool success = false;
+    for (int attempt = 0; attempt < 3 && !success; attempt++)
     {
-        JsonDocument filter;
-        filter["choices"][0]["message"]["content"] = true;
+        String form = picks[esp_random() % n];   // fresh shape (and fresh draw) each try
 
-        JsonDocument doc;
-        DeserializationError err = deserializeJson(
-            doc, http.getString(), DeserializationOption::Filter(filter));
+        HTTPClient http;
+        http.begin(client, LLM_URL);
+        http.setTimeout(15000); // hosted models can take a few seconds to respond
+        http.addHeader("Content-Type", "application/json");
+        http.addHeader("Authorization", String("Bearer ") + apiKey);
 
-        String text = doc["choices"][0]["message"]["content"].as<String>();
+        String body =
+            "{"
+                "\"model\":\"" LLM_MODEL "\","
+                "\"max_tokens\":1024,"
+                "\"temperature\":0.8,"
+                "\"reasoning_effort\":\"low\","
+                "\"response_format\":{\"type\":\"json_object\"},"
+                "\"messages\":[{\"role\":\"user\",\"content\":\""
+                    "Generate ONE math equation for a wake-up alarm "
+                    "at difficulty level "
+                    + String(difficulty) +
+                    " out of 55, where 1 is trivial and 55 is expert. "
+                    "For this level, "
+                    + band +
+                    ". Aim for about "
+                    + String(ops) +
+                    " operations with ordinary numbers up to "
+                    + String(maxNum) +
+                    " (square roots may use perfect squares up to three digits), "
+                    "and at most two sets of brackets. "
+                    "Write square roots as sqrt(N) of perfect squares "
+                    "only, powers use ^, follow BEDMAS. "
+                    "The result must be a positive whole number under 2000000000. "
+                    "On the 15-column display sqrt(N) shows as 1 plus the digits "
+                    "of N. It MUST fit within 15 columns: if it would not fit, "
+                    "use fewer operations or smaller numbers. Fitting is required. "
+                    "Shape it so it "
+                    + form +
+                    ". Respond in JSON only: "
+                    "{\\\"equation\\\": \\\"7+5\\\", \\\"answer\\\": 12}"
+                "\"}]}";
 
-        JsonDocument eq_doc;
-        DeserializationError eqErr = deserializeJson(eq_doc, text);
-        String rawEq = eq_doc["equation"].as<String>();
-        ANS = eq_doc["answer"].as<int>();
-        eq  = toDisplay(rawEq);               // sqrt(N) -> √N for the LCD
-
-        // bad parse, empty, or too wide for the 16-col display -> local fallback
-        if (err || eqErr || rawEq.length() == 0 || eq.length() > 16)
+        int code = http.POST(body);
+        if (code == 200)
         {
-            equation();
+            JsonDocument filter;
+            filter["choices"][0]["message"]["content"] = true;
+
+            JsonDocument doc;
+            DeserializationError err = deserializeJson(
+                doc, http.getString(), DeserializationOption::Filter(filter));
+
+            String text = doc["choices"][0]["message"]["content"].as<String>();
+
+            JsonDocument eq_doc;
+            DeserializationError eqErr = deserializeJson(eq_doc, text);
+            String rawEq = eq_doc["equation"].as<String>();
+            String disp  = toDisplay(rawEq);          // sqrt(N) -> √N for the LCD
+
+            // reject any operation this difficulty hasn't unlocked (mirrors `allowed`)
+            bool opsOk = true;
+            if (!(allowed & kRoot) && rawEq.indexOf("sqrt") != -1) opsOk = false;
+            if (!(allowed & kPow)  && rawEq.indexOf('^')    != -1) opsOk = false;
+            if (!(allowed & kMul)  && rawEq.indexOf('*')    != -1) opsOk = false;
+            if (!(allowed & kDiv)  && rawEq.indexOf('/')    != -1) opsOk = false;
+
+            // accept only a clean parse that fits the display and obeys the band
+            if (!err && !eqErr && rawEq.length() > 0 && disp.length() <= 15 && opsOk)
+            {
+                ANS = eq_doc["answer"].as<int>();
+                eq  = disp;
+                success = true;
+            }
         }
+        http.end();
     }
-    else // if AI fails go back to old equation generation
-    {
+
+    if (!success)   // couldn't get a valid one in time -> local fallback
         equation();
-    }
-    http.end();
 
     WiFi.disconnect(true); // disconnect cuz only need wifi for equation generation
 }

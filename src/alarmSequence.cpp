@@ -15,10 +15,12 @@ bool alarmON = false;
 void initAlarm()
 {
     pinMode(BUZZER_PIN, OUTPUT);
-    tone(BUZZER_PIN, 1000); // play buzzer
+    
     alarmON = true;
 
     getEquation();
+
+    tone(BUZZER_PIN, 1000); // play buzzer
 
     lcd.print(eq);
 
@@ -50,6 +52,8 @@ void alarmLoop()
             SOLVED = true;
             unsigned long elapsed = (millis() - startTime)/1000;
             adjustDifficulty(elapsed);
+            lcd.setCursor(0,1);
+            lcd.print("Solved in " + String(elapsed) + "s");
             // Serial.println("Solved.");
         }
         else
