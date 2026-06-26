@@ -25,6 +25,7 @@ void initAlarm()
     lcd.setCursor(0,1);
     lcd.print("= ");
 
+    startTime = millis();
     // setup for DFPlayer (to replace buzzer with music)
     //mySerial.begin(9600, SERIAL_8N1, 16, 17); // RX, TX
     //player.begin(mySerial);

@@ -5,6 +5,7 @@
 
 extern String eq;
 extern int ANS;
+extern int difficulty;
 
 void adjustDifficulty(float elapsed);
 void getEquation();

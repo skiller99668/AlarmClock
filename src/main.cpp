@@ -7,6 +7,7 @@
 
 #include "alarmSequence.h"
 #include "setTime.h"
+#include "genEquation.h"
 
 // make rtc:
 ThreeWire myWire(27, 14, 26); // IO, SCLK, CE
@@ -87,6 +88,14 @@ void setup() {
 
     // initialize led:
     FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
+
+    // initialize difficulty:
+    prefs.begin("alarmClock", false);
+    if (prefs.isKey("difficulty"))
+    {
+        difficulty = prefs.getInt("difficulty");
+    }
+    prefs.end();
 }
 
 void loop() {
@@ -146,9 +155,12 @@ void loop() {
             alarmTime = "";
             lcd.clear();
             lcd.print("Alarm Cancelled");
+
             prefs.begin("alarmClock", false);
-            prefs.clear();
+            prefs.remove("alarmActive");
+            prefs.remove("alarmTime");
             prefs.end();
+            
             delay(1000);
             lcd.clear();
             FastLED.clear();
@@ -175,6 +187,15 @@ void loop() {
             lcd.clear();
         }
 
+    }
+
+    // check difficulty:
+    if (key == 'C')
+    {
+        lcd.clear();
+        lcd.print("Difficulty: " + String(difficulty));
+        delay(2000);
+        lcd.clear();
     }
 
     // reset time:

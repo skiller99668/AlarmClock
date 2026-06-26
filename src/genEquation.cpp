@@ -5,6 +5,7 @@
 #include <WiFiClientSecure.h>
 
 #include "config.h"
+#include "setTime.h"
 
 const char* apiKey = LLM_API_KEY;
 
@@ -77,11 +78,11 @@ void equation()
 
 void adjustDifficulty(float elapsed) 
 {
-    if (elapsed > 45 && difficulty > 1)
+    if (elapsed > 45 && elapsed < 70 && difficulty > 1)
     {
         difficulty--;
     } 
-    else if (elapsed < 45 && difficulty < 55)
+    else if (elapsed < 45 && elapsed > 15 && difficulty < 55)
     {
         difficulty++;
     } 
@@ -93,6 +94,10 @@ void adjustDifficulty(float elapsed)
     {
         difficulty -= 2;
     }
+    
+    prefs.begin("alarmClock", false);
+    prefs.putInt("difficulty", difficulty);
+    prefs.end();
     //Serial.println("Difficulty: " + String(difficulty) + "/55");
 }
 
